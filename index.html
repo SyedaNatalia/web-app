@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEVA – Dubai Pump Management Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a14;
+    --surface: #0b1422;
+    --surface2: #111d2e;
+    --border: #1a2d44;
+    --accent: #00c6ff;
+    --accent2: #f7b731;
+    --accent3: #26de81;
+    --accent4: #fc5c65;
+    --text: #e8f4ff;
+    --muted: #5a7a99;
+    --glow: 0 0 20px rgba(0,198,255,0.3);
+    --card-radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,198,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,198,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── TOP NAV ─── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    height: 64px;
+    background: rgba(5,10,20,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), #0057ff);
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: -1px;
+    box-shadow: var(--glow);
+  }
+
+  .logo-text { font-size: 18px; font-weight: 800; letter-spacing: 3px; color: var(--text); }
+  .logo-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-top: 1px; }
+
+  .nav-right { display: flex; align-items: center; gap: 20px; }
+
+  .nav-badge {
+    display: flex; align-items: center; gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--muted);
+  }
+
+  .pulse-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent3);
+    box-shadow: 0 0 8px var(--accent3);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .nav-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    background: rgba(0,198,255,0.07);
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(0,198,255,0.2);
+  }
+
+  /* ─── LAYOUT ─── */
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 28px 28px 60px;
+  }
+
+  /* ─── PAGE HEADER ─── */
+  .page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+
+  .page-title { font-size: 28px; font-weight: 800; letter-spacing: 1px; }
+  .page-title span { color: var(--accent); }
+  .page-sub { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .header-actions { display: flex; gap: 10px; }
+
+  .btn {
+    font-family: 'Syne', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 9px 18px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #0057ff);
+    color: #fff;
+    box-shadow: var(--glow);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(0,198,255,0.5); }
+
+  /* ─── KPI STRIP ─── */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    transition: transform .2s, border-color .2s;
+    animation: fadeUp .5s ease both;
+  }
+
+  .kpi-card:hover { transform: translateY(-2px); border-color: var(--accent); }
+
+  .kpi-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+  }
+
+  .kpi-card.blue::after  { background: linear-gradient(90deg, var(--accent), transparent); }
+  .kpi-card.gold::after  { background: linear-gradient(90deg, var(--accent2), transparent); }
+  .kpi-card.green::after { background: linear-gradient(90deg, var(--accent3), transparent); }
+  .kpi-card.red::after   { background: linear-gradient(90deg, var(--accent4), transparent); }
+  .kpi-card.purple::after{ background: linear-gradient(90deg, #a55eea, transparent); }
+
+  .kpi-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .kpi-value {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .kpi-card.blue  .kpi-value { color: var(--accent); }
+  .kpi-card.gold  .kpi-value { color: var(--accent2); }
+  .kpi-card.green .kpi-value { color: var(--accent3); }
+  .kpi-card.red   .kpi-value { color: var(--accent4); }
+  .kpi-card.purple .kpi-value { color: #a55eea; }
+
+  .kpi-delta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .delta-up   { color: var(--accent3); }
+  .delta-down { color: var(--accent4); }
+
+  /* ─── AREA TABS ─── */
+  .area-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  .area-tab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+    transition: all .2s;
+  }
+
+  .area-tab:hover, .area-tab.active {
+    background: rgba(0,198,255,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ─── MAIN GRID ─── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 320px;
+    gap: 18px;
+    margin-bottom: 18px;
+  }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 22px 24px;
+    animation: fadeUp .5s ease both;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+
+  .card-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(0,198,255,0.1);
+    border: 1px solid rgba(0,198,255,0.2);
+    color: var(--accent);
+  }
+
+  /* ─── AREA MAP (SVG representation) ─── */
+  .dubai-map {
+    position: relative;
+    height: 280px;
+    background: var(--surface2);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .dubai-map svg { width: 100%; height: 100%; }
+
+  /* ─── PUMP TABLE ─── */
+  .pump-table { width: 100%; border-collapse: collapse; }
+
+  .pump-table thead th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    text-align: left;
+    padding: 0 12px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .pump-table tbody tr {
+    border-bottom: 1px solid rgba(26,45,68,0.5);
+    transition: background .15s;
+    cursor: pointer;
+  }
+
+  .pump-table tbody tr:hover { background: rgba(0,198,255,0.04); }
+
+  .pump-table tbody td {
+    padding: 12px 12px;
+    font-size: 13px;
+  }
+
+  .pump-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+
+  .status-pill.running {
+    background: rgba(38,222,129,0.1);
+    color: var(--accent3);
+    border: 1px solid rgba(38,222,129,0.3);
+  }
+
+  .status-pill.warning {
+    background: rgba(247,183,49,0.1);
+    color: var(--accent2);
+    border: 1px solid rgba(247,183,49,0.3);
+  }
+
+  .status-pill.offline {
+    background: rgba(252,92,101,0.1);
+    color: var(--accent4);
+    border: 1px solid rgba(252,92,101,0.3);
+  }
+
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* ─── PRESSURE GAUGES ─── */
+  .gauges-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .gauge-box {
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .gauge-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  .gauge-svg { width: 90px; height: 55px; }
+
+  .gauge-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 6px;
+  }
+
+  .gauge-unit {
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* ─── FLOW CHART (CSS bar chart) ─── */
+  .flow-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 120px;
+    padding-top: 10px;
+  }
+
+  .flow-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .flow-bar {
+    width: 100%;
+    border-radius: 5px 5px 0 0;
+    min-height: 4px;
+    transition: height .8s cubic-bezier(.4,0,.2,1);
+  }
+
+  .flow-bar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+  }
+
+  .flow-bar-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--text);
+    margin-bottom: auto;
+  }
+
+  /* ─── ALERTS PANEL ─── */
+  .alert-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(26,45,68,0.5);
+  }
+
+  .alert-item:last-child { border-bottom: none; }
+
+  .alert-icon {
+    width: 30px; height: 30px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .alert-icon.warn { background: rgba(247,183,49,0.1); }
+  .alert-icon.err  { background: rgba(252,92,101,0.1); }
+  .alert-icon.info { background: rgba(0,198,255,0.1);  }
+
+  .alert-text {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .alert-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* ─── BOTTOM GRID ─── */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 18px;
+  }
+
+  /* ─── AREA BREAKDOWN TABLE ─── */
+  .area-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 60px 70px;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(26,45,68,0.5);
+  }
+
+  .area-row:last-child { border-bottom: none; }
+
+  .area-name { font-size: 13px; font-weight: 600; }
+  .area-name-sub { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+  .progress-bar {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 1s ease;
+  }
+
+  .area-eff {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    text-align: right;
+  }
+
+  .area-status-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    text-align: center;
+  }
+
+  /* ─── ENERGY RING ─── */
+  .energy-ring-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 0;
+  }
+
+  .energy-ring-center {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 130px; height: 130px;
+  }
+
+  .energy-ring-center svg { position: absolute; inset: 0; }
+
+  .energy-inner-val {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--accent);
+    z-index: 1;
+  }
+
+  .energy-inner-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    z-index: 1;
+    text-align: center;
+    margin-top: 2px;
+  }
+
+  .energy-legend {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .energy-legend-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+  }
+
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .kpi-card:nth-child(1) { animation-delay: .05s; }
+  .kpi-card:nth-child(2) { animation-delay: .10s; }
+  .kpi-card:nth-child(3) { animation-delay: .15s; }
+  .kpi-card:nth-child(4) { animation-delay: .20s; }
+  .kpi-card:nth-child(5) { animation-delay: .25s; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 1100px) {
+    .main-grid { grid-template-columns: 1fr 1fr; }
+    .main-grid > .card:last-child { grid-column: 1/-1; }
+    .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 700px) {
+    .kpi-strip { grid-template-columns: 1fr 1fr; }
+    .main-grid, .bottom-grid { grid-template-columns: 1fr; }
+    nav { padding: 0 16px; }
+    .wrapper { padding: 16px 14px 50px; }
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-icon">D</div>
+    <div>
+      <div class="logo-text">DEVA</div>
+      <div class="logo-sub">PUMP MANAGEMENT · DUBAI</div>
+    </div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-badge">
+      <div class="pulse-dot"></div>
+      <span>LIVE MONITORING</span>
+    </div>
+    <div class="nav-time" id="clock">--:--:--</div>
+    <button class="btn btn-outline" onclick="exportCSV()">⬇ EXPORT</button>
+  </div>
+</nav>
+
+<div class="wrapper">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <div class="page-title">Pump <span>Operations</span> Overview</div>
+      <div class="page-sub">// REAL-TIME · ALL ZONES · DUBAI NETWORK</div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline">SCHEDULE</button>
+      <button class="btn btn-primary">+ ADD PUMP</button>
+    </div>
+  </div>
+
+  <!-- AREA TABS -->
+  <div class="area-tabs">
+    <div class="area-tab active" onclick="setTab(this)">ALL ZONES</div>
+    <div class="area-tab" onclick="setTab(this)">DOWNTOWN DUBAI</div>
+    <div class="area-tab" onclick="setTab(this)">DUBAI MARINA</div>
+    <div class="area-tab" onclick="setTab(this)">JUMEIRAH</div>
+    <div class="area-tab" onclick="setTab(this)">DEIRA</div>
+    <div class="area-tab" onclick="setTab(this)">BUR DUBAI</div>
+    <div class="area-tab" onclick="setTab(this)">AL QUOZ IND.</div>
+    <div class="area-tab" onclick="setTab(this)">PALM JUMEIRAH</div>
+  </div>
+
+  <!-- KPI STRIP -->
+  <div class="kpi-strip">
+    <div class="kpi-card blue">
+      <div class="kpi-label">TOTAL PUMPS</div>
+      <div class="kpi-value">148</div>
+      <div class="kpi-delta delta-up">↑ 3 added this week</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">RUNNING</div>
+      <div class="kpi-value">127</div>
+      <div class="kpi-delta delta-up">↑ 85.8% uptime</div>
+    </div>
+    <div class="kpi-card gold">
+      <div class="kpi-label">WARNINGS</div>
+      <div class="kpi-value">14</div>
+      <div class="kpi-delta delta-down">↓ 2 resolved today</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-label">OFFLINE</div>
+      <div class="kpi-value">7</div>
+      <div class="kpi-delta delta-down">↓ Maintenance req.</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">FLOW RATE (m³/h)</div>
+      <div class="kpi-value">4,820</div>
+      <div class="kpi-delta delta-up">↑ 6% vs yesterday</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- Dubai Area Map -->
+    <div class="card" style="animation-delay:.3s">
+      <div class="card-header">
+        <span class="card-title">Dubai Zone Map</span>
+        <span class="card-badge">LIVE</span>
+      </div>
+      <div class="dubai-map">
+        <svg viewBox="0 0 560 260" xmlns="http://www.w3.org/2000/svg">
+          <!-- Background -->
+          <rect width="560" height="260" fill="#0b1422"/>
+
+          <!-- Sea / water -->
+          <path d="M0 180 Q80 160 160 170 Q240 180 320 165 Q400 150 480 160 Q520 165 560 155 L560 260 L0 260 Z"
+                fill="rgba(0,90,180,0.15)" stroke="none"/>
+          <text x="280" y="240" fill="rgba(0,150,255,0.3)" font-size="12" font-family="JetBrains Mono" text-anchor="middle">
+            ARABIAN GULF
+          </text>
+
+          <!-- Zone: Deira -->
+          <rect x="20" y="40" width="110" height="90" rx="10"
+                fill="rgba(0,198,255,0.07)" stroke="rgba(0,198,255,0.3)" stroke-width="1.5"/>
+          <text x="75" y="78" fill="#e8f4ff" font-size="11" font-family="Syne" text-anchor="middle" font-weight="700">DEIRA</text>
+          <text x="75" y="92" fill="#00c6ff" font-size="10" font-family="JetBrains Mono" text-anchor="middle">24 pumps</text>
+          <circle cx="60"  cy="110" r="5" fill="#26de81"/>
+          <circle cx="75"  cy="110" r="5" fill="#26de81"/>
+          <circle cx="90"  cy="110" r="5" fill="#f7b731"/>
+
+          <!-- Zone: Bur Dubai -->
+          <rect x="140" y="60" width="100" height="90" rx="10"
+                fill="rgba(165,94,234,0.07)" stroke="rgba(165,94,234,0.3)" stroke-width="1.5"/>
+          <text x="190" y="100" fill="#e8f4ff" font-size="11" font-family="Syne" text-anchor="middle" font-weight="700">BUR DUBAI</text>
+          <text x="190" y="114" fill="#a55eea" font-size="10" font-family="JetBrains Mono" text-anchor="middle">21 pumps</text>
+          <circle cx="175" cy="130" r="5" fill="#26de81"/>
+          <circle cx="190" cy="130" r="5" fill="#26de81"/>
+          <circle cx="205" cy="130" r="5" fill="#fc5c65"/>
+
+          <!-- Zone: Downtown -->
+          <rect x="250" y="50" width="100" height="95" rx="10"
+                fill="rgba(0,198,255,0.1)" stroke="rgba(0,198,255,0.5)" stroke-width="2"/>
+          <text x="300" y="90" fill="#e8f4ff" font-size="11" font-family="Syne" text-anchor="middle" font-weight="700">DOWNTOWN</text>
+          <text x="300" y="104" fill="#00c6ff" font-size="10" font-family="JetBrains Mono" text-anchor="middle">32 pumps</text>
+          <circle cx="283" cy="122" r="5" fill="#26de81"/>
+          <circle cx="298" cy="122" r="5" fill="#26de81"/>
+          <circle cx="313" cy="122" r="5" fill="#26de81"/>
+
+          <!-- Zone: Al Quoz -->
+          <rect x="258" y="10" width="88" height="38" rx="8"
+                fill="rgba(247,183,49,0.07)" stroke="rgba(247,183,49,0.3)" stroke-width="1.5"/>
+          <text x="302" y="28" fill="#f7b731" font-size="10" font-family="Syne" text-anchor="middle" font-weight="700">AL QUOZ IND.</text>
+          <text x="302" y="40" fill="#f7b731" font-size="9" font-family="JetBrains Mono" text-anchor="middle">18 pumps</text>
+
+          <!-- Zone: Jumeirah -->
+          <rect x="360" y="80" width="90" height="75" rx="10"
+                fill="rgba(38,222,129,0.07)" stroke="rgba(38,222,129,0.3)" stroke-width="1.5"/>
+          <text x="405" y="115" fill="#e8f4ff" font-size="11" font-family="Syne" text-anchor="middle" font-weight="700">JUMEIRAH</text>
+          <text x="405" y="129" fill="#26de81" font-size="10" font-family="JetBrains Mono" text-anchor="middle">19 pumps</text>
+
+          <!-- Zone: Dubai Marina -->
+          <rect x="455" y="55" width="95" height="110" rx="10"
+                fill="rgba(0,198,255,0.07)" stroke="rgba(0,198,255,0.25)" stroke-width="1.5"/>
+          <text x="502" y="100" fill="#e8f4ff" font-size="11" font-family="Syne" text-anchor="middle" font-weight="700">MARINA</text>
+          <text x="502" y="114" fill="#00c6ff" font-size="10" font-family="JetBrains Mono" text-anchor="middle">22 pumps</text>
+          <circle cx="490" cy="132" r="5" fill="#26de81"/>
+          <circle cx="505" cy="132" r="5" fill="#f7b731"/>
+          <circle cx="520" cy="132" r="5" fill="#fc5c65"/>
+
+          <!-- Palm Jumeirah (circular shape hint) -->
+          <ellipse cx="430" cy="190" rx="55" ry="30" fill="rgba(247,183,49,0.05)" stroke="rgba(247,183,49,0.25)" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <text x="430" y="187" fill="#f7b731" font-size="10" font-family="Syne" text-anchor="middle" font-weight="700">PALM</text>
+          <text x="430" y="199" fill="#f7b731" font-size="9" font-family="JetBrains Mono" text-anchor="middle">12 pumps</text>
+
+          <!-- Legend -->
+          <circle cx="20" cy="250" r="5" fill="#26de81"/>
+          <text x="30" y="254" fill="#5a7a99" font-size="9" font-family="JetBrains Mono">RUNNING</text>
+          <circle cx="90" cy="250" r="5" fill="#f7b731"/>
+          <text x="100" y="254" fill="#5a7a99" font-size="9" font-family="JetBrains Mono">WARNING</text>
+          <circle cx="170" cy="250" r="5" fill="#fc5c65"/>
+          <text x="180" y="254" fill="#5a7a99" font-size="9" font-family="JetBrains Mono">OFFLINE</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Pump Status Table -->
+    <div class="card" style="animation-delay:.35s">
+      <div class="card-header">
+        <span class="card-title">Pump Status</span>
+        <span class="card-badge">LIVE FEED</span>
+      </div>
+      <table class="pump-table">
+        <thead>
+          <tr>
+            <th>PUMP ID</th>
+            <th>ZONE</th>
+            <th>FLOW m³/h</th>
+            <th>PRESSURE</th>
+            <th>STATUS</th>
+          </tr>
+        </thead>
+        <tbody id="pumpTableBody">
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Right Panel -->
+    <div style="display:flex;flex-direction:column;gap:18px">
+
+      <!-- Pressure Gauges -->
+      <div class="card" style="animation-delay:.4s">
+        <div class="card-header">
+          <span class="card-title">Pressure (Bar)</span>
+        </div>
+        <div class="gauges-grid">
+          <div class="gauge-box">
+            <div class="gauge-label">DOWNTOWN</div>
+            <svg class="gauge-svg" viewBox="0 0 90 55">
+              <path d="M10,50 A40,40 0 0,1 80,50" fill="none" stroke="#1a2d44" stroke-width="8" stroke-linecap="round"/>
+              <path d="M10,50 A40,40 0 0,1 80,50" fill="none" stroke="#00c6ff" stroke-width="8" stroke-linecap="round"
+                    stroke-dasharray="126" stroke-dashoffset="38"/>
+              <text x="45" y="46" fill="#e8f4ff" font-size="13" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">6.2</text>
+            </svg>
+            <div class="gauge-unit">BAR</div>
+          </div>
+          <div class="gauge-box">
+            <div class="gauge-label">MARINA</div>
+            <svg class="gauge-svg" viewBox="0 0 90 55">
+              <path d="M10,50 A40,40 0 0,1 80,50" fill="none" stroke="#1a2d44" stroke-width="8" stroke-linecap="round"/>
+              <path d="M10,50 A40,40 0 0,1 80,50" fill="none" stroke="#a55eea" stroke-width="8" stroke-linecap="round"
+                    stroke-dasharray="126" stroke-dashoffset="55"/>
+              <text x="45" y="46" fill="#e8f4ff" font-size="13" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">4.8</text>
+            </svg>
+            <div class="gauge-unit">BAR</div>
+          </div>
+          <div class="gauge-box">
+            <div class="gauge-label">JUMEIRAH</div>
+            <svg class="gauge-svg" viewBox="0 0 90 55">
+              <path d="M10,50 A40,40 0 0,1 80,50" fill="none" stroke="#1a2d44" stroke-width="8" stroke-linecap="round"/>
+              <path d="M10,50 A40,40 0 0,1 80,50" fill="none" stroke="#26de81" stroke-width="8" stroke-linecap="round"
+                    stroke-dasharray="126" stroke-dashoffset="32"/>
+              <text x="45" y="46" fill="#e8f4ff" font-size="13" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">6.7</text>
+            </svg>
+            <div class="gauge-unit">BAR</div>
+          </div>
+          <div class="gauge-box">
+            <div class="gauge-label">DEIRA</div>
+            <svg class="gauge-svg" viewBox="0 0 90 55">
+              <path d="M10,50 A40,40 0 0,1 80,50" fill="none" stroke="#1a2d44" stroke-width="8" stroke-linecap="round"/>
+              <path d="M10,50 A40,40 0 0,1 80,50" fill="none" stroke="#f7b731" stroke-width="8" stroke-linecap="round"
+                    stroke-dasharray="126" stroke-dashoffset="65"/>
+              <text x="45" y="46" fill="#e8f4ff" font-size="13" font-weight="700" text-anchor="middle" font-family="JetBrains Mono">4.1</text>
+            </svg>
+            <div class="gauge-unit">BAR</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alerts -->
+      <div class="card" style="animation-delay:.45s;flex:1">
+        <div class="card-header">
+          <span class="card-title">Active Alerts</span>
+          <span class="card-badge" style="background:rgba(252,92,101,0.1);border-color:rgba(252,92,101,0.3);color:#fc5c65">7 NEW</span>
+        </div>
+        <div class="alert-item">
+          <div class="alert-icon err">🔴</div>
+          <div>
+            <div class="alert-text">Pump DXB-M-07 — Overheating detected. Auto-shutdown initiated.</div>
+            <div class="alert-time">Dubai Marina · 2 min ago</div>
+          </div>
+        </div>
+        <div class="alert-item">
+          <div class="alert-icon warn">⚠️</div>
+          <div>
+            <div class="alert-text">Pressure drop on DXB-J-12 — below 4.0 bar threshold.</div>
+            <div class="alert-time">Jumeirah · 8 min ago</div>
+          </div>
+        </div>
+        <div class="alert-item">
+          <div class="alert-icon warn">⚠️</div>
+          <div>
+            <div class="alert-text">Flow irregularity on DXB-D-03 — check inlet valve.</div>
+            <div class="alert-time">Deira · 14 min ago</div>
+          </div>
+        </div>
+        <div class="alert-item">
+          <div class="alert-icon info">ℹ️</div>
+          <div>
+            <div class="alert-text">Scheduled maintenance due: DXB-AQ-09 (Al Quoz).</div>
+            <div class="alert-time">Al Quoz Ind. · 1 hr ago</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOTTOM GRID -->
+  <div class="bottom-grid">
+
+    <!-- Area Performance -->
+    <div class="card" style="animation-delay:.5s">
+      <div class="card-header">
+        <span class="card-title">Zone Performance</span>
+        <span class="card-badge">EFFICIENCY</span>
+      </div>
+      <div id="areaRows"></div>
+    </div>
+
+    <!-- Energy Distribution -->
+    <div class="card" style="animation-delay:.55s">
+      <div class="card-header">
+        <span class="card-title">Energy Usage</span>
+        <span class="card-badge">kWh TODAY</span>
+      </div>
+      <div class="energy-ring-wrap">
+        <div class="energy-ring-center">
+          <svg viewBox="0 0 130 130" width="130" height="130">
+            <circle cx="65" cy="65" r="55" fill="none" stroke="#1a2d44" stroke-width="14"/>
+            <!-- Segments -->
+            <circle cx="65" cy="65" r="55" fill="none" stroke="#00c6ff" stroke-width="14"
+                    stroke-dasharray="346" stroke-dashoffset="86"
+                    transform="rotate(-90 65 65)" stroke-linecap="butt"/>
+            <circle cx="65" cy="65" r="55" fill="none" stroke="#a55eea" stroke-width="14"
+                    stroke-dasharray="346" stroke-dashoffset="260"
+                    transform="rotate(-90 65 65)" stroke-linecap="butt"
+                    style="transform-origin:65px 65px;transform:rotate(calc(-90deg + 260deg * 0deg / 346deg))"/>
+            <!-- simpler: manual offsets -->
+          </svg>
+          <div>
+            <div class="energy-inner-val">18.4</div>
+            <div class="energy-inner-label">MWh TOTAL</div>
+          </div>
+        </div>
+        <div class="energy-legend" style="max-width:220px">
+          <div class="energy-legend-row">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="legend-dot" style="background:#00c6ff"></div>
+              <span style="font-size:11px">Downtown / CBD</span>
+            </div>
+            <span style="color:#00c6ff">5.8 MWh</span>
+          </div>
+          <div class="energy-legend-row">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="legend-dot" style="background:#a55eea"></div>
+              <span style="font-size:11px">Dubai Marina</span>
+            </div>
+            <span style="color:#a55eea">4.2 MWh</span>
+          </div>
+          <div class="energy-legend-row">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="legend-dot" style="background:#26de81"></div>
+              <span style="font-size:11px">Jumeirah</span>
+            </div>
+            <span style="color:#26de81">2.9 MWh</span>
+          </div>
+          <div class="energy-legend-row">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="legend-dot" style="background:#f7b731"></div>
+              <span style="font-size:11px">Deira + Bur Dubai</span>
+            </div>
+            <span style="color:#f7b731">3.1 MWh</span>
+          </div>
+          <div class="energy-legend-row">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="legend-dot" style="background:#fc5c65"></div>
+              <span style="font-size:11px">Al Quoz / Palm</span>
+            </div>
+            <span style="color:#fc5c65">2.4 MWh</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ─── CLOCK ───
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-GB', { hour12: false }) + ' GST';
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─── TABS ───
+function setTab(el) {
+  document.querySelectorAll('.area-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ─── PUMP DATA ───
+const pumps = [
+  { id:'DXB-DT-01', zone:'Downtown', flow:320, pressure:'6.2 bar', status:'running' },
+  { id:'DXB-DT-02', zone:'Downtown', flow:295, pressure:'6.0 bar', status:'running' },
+  { id:'DXB-DT-03', zone:'Downtown', flow:0,   pressure:'—',       status:'offline' },
+  { id:'DXB-M-05',  zone:'Marina',   flow:280, pressure:'4.8 bar', status:'running' },
+  { id:'DXB-M-07',  zone:'Marina',   flow:0,   pressure:'—',       status:'offline' },
+  { id:'DXB-J-12',  zone:'Jumeirah', flow:190, pressure:'3.9 bar', status:'warning' },
+  { id:'DXB-J-14',  zone:'Jumeirah', flow:210, pressure:'5.1 bar', status:'running' },
+  { id:'DXB-D-03',  zone:'Deira',    flow:150, pressure:'4.1 bar', status:'warning' },
+  { id:'DXB-D-06',  zone:'Deira',    flow:200, pressure:'5.0 bar', status:'running' },
+  { id:'DXB-BD-02', zone:'Bur Dubai',flow:175, pressure:'5.3 bar', status:'running' },
+  { id:'DXB-AQ-09', zone:'Al Quoz',  flow:0,   pressure:'—',       status:'warning' },
+  { id:'DXB-P-01',  zone:'Palm Jumeirah', flow:240, pressure:'6.1 bar', status:'running' },
+];
+
+const tbody = document.getElementById('pumpTableBody');
+pumps.forEach(p => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><span class="pump-id">${p.id}</span></td>
+    <td style="font-size:12px;color:var(--muted)">${p.zone}</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${p.flow || '—'}</td>
+    <td style="font-family:'JetBrains Mono',monospace;font-size:12px">${p.pressure}</td>
+    <td><span class="status-pill ${p.status}">
+          <span class="status-dot"></span>
+          ${p.status.toUpperCase()}
+        </span></td>
+  `;
+  tbody.appendChild(tr);
+});
+
+// ─── ZONE PERFORMANCE ───
+const zones = [
+  { name:'Downtown Dubai', sub:'32 pumps', eff:94, color:'#00c6ff', status:'OPTIMAL',   sc:'rgba(0,198,255,0.15)',  tc:'#00c6ff' },
+  { name:'Dubai Marina',   sub:'22 pumps', eff:82, color:'#a55eea', status:'GOOD',       sc:'rgba(165,94,234,0.15)', tc:'#a55eea' },
+  { name:'Jumeirah',       sub:'19 pumps', eff:73, color:'#26de81', status:'WARNING',    sc:'rgba(247,183,49,0.15)', tc:'#f7b731' },
+  { name:'Deira',          sub:'24 pumps', eff:79, color:'#f7b731', status:'GOOD',       sc:'rgba(38,222,129,0.15)', tc:'#26de81' },
+  { name:'Bur Dubai',      sub:'21 pumps', eff:88, color:'#00c6ff', status:'OPTIMAL',   sc:'rgba(0,198,255,0.15)',  tc:'#00c6ff' },
+  { name:'Al Quoz Ind.',   sub:'18 pumps', eff:61, color:'#fc5c65', status:'CRITICAL',   sc:'rgba(252,92,101,0.15)','tc':'#fc5c65' },
+  { name:'Palm Jumeirah',  sub:'12 pumps', eff:91, color:'#26de81', status:'OPTIMAL',   sc:'rgba(38,222,129,0.15)', tc:'#26de81' },
+];
+
+const areaRows = document.getElementById('areaRows');
+zones.forEach(z => {
+  const div = document.createElement('div');
+  div.className = 'area-row';
+  div.innerHTML = `
+    <div>
+      <div class="area-name">${z.name}</div>
+      <div class="area-name-sub">${z.sub}</div>
+    </div>
+    <div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${z.eff}%;background:${z.color}"></div>
+      </div>
+    </div>
+    <div class="area-eff" style="color:${z.color}">${z.eff}%</div>
+    <div>
+      <div class="area-status-pill" style="background:${z.sc};color:${z.tc};border:1px solid ${z.tc}40">
+        ${z.status}
+      </div>
+    </div>
+  `;
+  areaRows.appendChild(div);
+});
+
+// ─── EXPORT CSV ───
+function exportCSV() {
+  const headers = ['Pump ID','Zone','Flow (m³/h)','Pressure','Status'];
+  const rows = pumps.map(p =>
+    [p.id, p.zone, p.flow, p.pressure, p.status].join(',')
+  );
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type:'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'DEVA_Pump_Report.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ─── SIMULATE LIVE UPDATES ───
+setInterval(() => {
+  const rows = document.querySelectorAll('#pumpTableBody tr');
+  rows.forEach((row, i) => {
+    if (pumps[i].status === 'running') {
+      const delta = Math.floor(Math.random() * 10) - 5;
+      pumps[i].flow = Math.max(100, pumps[i].flow + delta);
+      const flowCell = row.querySelectorAll('td')[2];
+      flowCell.textContent = pumps[i].flow;
+    }
+  });
+}, 3000);
+</script>
+</body>
+</html>
